@@ -1,12 +1,25 @@
 # Setup DOMJudge Server
 
+This is a minimal install of the DOMJudge server. This will affect some of the choices made within this instruction set to try and minimize the cost of the server.
+
+> [!IMPORTANT]
+> Staying within the free tier is not possible because of the web traffic. It will cost a few cents in order to run the server for competitions but it will not be a large amount of money. Depending on the load, it will range from a dollar to a sandwitch from subway.
+
 ## Make The Account
 
-Go through the process to make a new account. This account will need to have a payment method in order for it to work. After adding all payment methods, phone numbers, and all of your personal information, AWS will take a couple of hours to verify the account (up to 24h). I am conviced that the website is designed to be more confusing.
+Go through the process to make a new account. This account will need to have a payment method in order for it to work. Go through the entire process of verifying your account and then your almost set to go.
+
+> [!NOTE]
+> This will take some time. After completing the verification process, you will have to wait an hour or two (up to 24h according to AWS)
 
 ## Make The Instance
 
-On the homepage in the first widget, click on the EC2 and this will bring you to the EC2 page. Create An Instance to host the actual DOMJudge. This instance is going to be Ubuntu preset with t2.micro (for that free tier). Create a simple RSA keypair (pem) and store it in a safe location.
+On the homepage in the first widget, click on the EC2 and this will bring you to the EC2 page. Create An Instance to host the actual DOMJudge. This instance is going to be Ubuntu preset with t2.micro (for that free tier).
+
+> [!IMPORTANT]
+> The actual EC2 will depend on your specific needs. This is a minimal installation that attemps to stay mostly within free tier (not entirely possible).
+
+Create a simple RSA keypair (pem) and store it in a safe location on your computer (You will use this later).
 
 Configuring the network settings. I have set allow SSH traffic from any IP (I know that is not good practice but this is convient). Also set the web traffic to true for HTTPS and HTTP for the actual website I think. I have set the storage to 10GB but I'm sure the default 8GB would work just as well (GP2). As long as it is within the free tier.
 
@@ -22,7 +35,8 @@ ssh -i /path/to/pemFile ubuntu@public_ip_address_of_EC2
 
 ## Update Server
 
-The dependencies will not work correctly without an update to the system.
+> [!WARNING]
+> The dependencies will not work correctly without an update to the system.
 
 ```
 sudo apt update
@@ -33,16 +47,23 @@ sudo apt upgrade
 
 ```
 sudo apt install acl zip unzip mariadb-server apache2 \
-      php php-fpm php-gd php-cli php-intl php-mbstring php-mysql \
-      php-curl php-json php-xml php-zip composer ntp
+    php php-fpm php-gd php-cli php-intl php-mbstring php-mysql \
+    php-curl php-json php-xml php-zip composer ntp
 
 sudo apt install autoconf automake bats \
-  python3-sphinx python3-sphinx-rtd-theme rst2pdf fontconfig python3-yaml \
-  latexmk texlive-latex-recommended texlive-latex-extra tex-gyre
+    python3-sphinx python3-sphinx-rtd-theme rst2pdf fontconfig python3-yaml \
+    latexmk texlive-latex-recommended texlive-latex-extra tex-gyre
 ```
+
+Now to actually download all of the code for DOMJudge. For this install, I am using DOMJudge 8.2.2:
 
 ```
 wget https://www.domjudge.org/releases/domjudge-8.2.2.tar.gz
+```
+
+Extract the downloaded release file:
+
+```
 tar -xf domjudge-8.2.2.tar.gz
 ```
 
