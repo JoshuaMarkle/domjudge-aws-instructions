@@ -50,9 +50,11 @@ sudo apt install acl zip unzip mariadb-server apache2 \
     php php-fpm php-gd php-cli php-intl php-mbstring php-mysql \
     php-curl php-json php-xml php-zip composer ntp
 
-sudo apt install autoconf automake bats \
+sudo apt install autoconf automake bats gcc \
     python3-sphinx python3-sphinx-rtd-theme rst2pdf fontconfig python3-yaml \
     latexmk texlive-latex-recommended texlive-latex-extra tex-gyre
+
+sudo apt install -y gcc g++ make zip unzip php-fpm php-cli php-gd php-curl php-mbstring php-mysql php-json php-xml php-zip bsdmainutils ntp linuxdoc-tools linuxdoc-tools-text groff texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended apache2 mysql-client mysql-server libapache2-mod-php libcgroup-dev
 ```
 
 Now to actually download all of the code for DOMJudge. For this install, I am using DOMJudge 8.2.2:
@@ -91,8 +93,10 @@ sudo make install-domserver
 Create the randomly generated password for the database. Inside the `domserver/bin`:
 
 ```
+cd ~/domjudge/domserver/bin
 ./dj_setup_database genpass
-sudo vi /opt/domjudge/domserver/etc/dbpasswords.secret
+cd ~/domjudge/domserver/etc
+sudo vi dbpasswords.secret
 ```
 
 You can edit this to make your own password to access the database. It will look something like this.
@@ -103,9 +107,21 @@ You can edit this to make your own password to access the database. It will look
 dummy:localhost:domjudge:domjudge:_YourPasswordHere_
 ```
 
+Resolve any dumb SQL errors
+
+```
+sudo rm -rf /etc/mysql
+sudo rm -rf /var/lib/mysql*
+sudo apt-get remove --purge mysql-server
+sudo apt-get autoremove
+sudo apt-get update && sudo apt-get upgrade
+sudo apt-get install mysql-server
+```
+
 Now to actually setup the database
 
 ```
+cd ~/domjudge/domserver/bin
 sudo ./dj_setup_database install
 ```
 
@@ -115,13 +131,15 @@ This is basically all from the docs and works by itself.
 
 *Note: the php version will probably change in the future. Change to your version*
 
+*Note: the ln and a2enmod might require sudo in front*
+
 ```
-ln -s <DOMSERVER_INSTALL_PATH>/etc/apache.conf /etc/apache2/conf-available/domjudge.conf
-ln -s <DOMSERVER_INSTALL_PATH>/etc/domjudge-fpm.conf /etc/php/8.1/fpm/pool.d/domjudge.conf
+ln -s ~/domjudge/domserver/etc/apache.conf /etc/apache2/conf-available/domjudge.conf
+ln -s ~/domjudge/domserver/etc/domjudge-fpm.conf /etc/php/8.1/fpm/pool.d/domjudge.conf
 a2enmod proxy_fcgi setenvif rewrite
 a2enconf php8.1-fpm domjudge
 sudo systemctl reload php8.1-fpm
-sudo systumctl reload apache2
+sudo systemctl reload apache2
 ```
 
 Now your webserver should be working. Put in the public IP address to the server into the search bar (http not https). The public IP by itself should show a "It's working page" from apache. Now lookup: `http://public_ip/domjudge`. If you get an error page (Forbidden), first check the error logs:
@@ -140,7 +158,11 @@ I had a permission error and this is what worked for me.
 chmod +x /home/ubuntu
 ```
 
+*Note: this is probably because I installed domjudge in my home directory haha*
+
 Now, you should be able to see the DOMJudge website with a login (`http://public_ip/domjudge`).
+
+If you have any other errors, sorry :/
 
 # Installing DOMJudge Judges
 
@@ -156,7 +178,7 @@ sudo apt upgrade
 ## Dependencies
 
 ```
-sudo apt install gcc g++ make cmake zip unzip debootstrap php-cli php-zip php-curl php-json procps openjdk-8-jre-headless openjdk-8-jdk libcgroup-dev -y
+sudo apt install gcc g++ make cmake zip unzip debootstrap
 
 sudo apt install acl zip unzip mariadb-server apache2 \
     php php-fpm php-gd php-cli php-intl php-mbstring php-mysql \
@@ -165,10 +187,7 @@ sudo apt install acl zip unzip mariadb-server apache2 \
 sudo apt install autoconf automake bats \
     python3-sphinx python3-sphinx-rtd-theme rst2pdf fontconfig python3-yaml \
     latexmk texlive-latex-recommended texlive-latex-extra tex-gyre
-```
 
-```
-# More packages
 sudo apt install make pkg-config sudo debootstrap libcgroup-dev \
       php-cli php-curl php-json php-xml php-zip lsof procps
 
@@ -187,6 +206,8 @@ tar -xf domjudge-8.2.2.tar.gz
 ```
 # Go back to the ~/domjudge-8.2.2 to build the judgehosts
 cd ~/domjudge-8.2.2
+make dist
+./configure --prefix=$HOME/domjudge
 make judgehost
 sudo make install-judgehost
 ```
@@ -201,10 +222,11 @@ lscpu | grep "Thread(s) per core"
 cat /sys/devices/system/cpu/smt/active
 ```
 
-If you have a value of 1 or above, it is possible. It is really nice to run multiple judges on one machine. I do not have this ability so I will not do the hyperthreading stuff.
+If you have a value of 1 or above, it is possible. It is really nice to run multiple judges on one machine. I do not have this ability (because of free tier) so I will not do the hyperthreading stuff.
 
 ## CGroups
 
+Add `quiet cgroup_enable=memory swapaccount=1` to the end of `GRUB_CMDLINE_LINUX_DEFAULT`
 ```
 sudo vi /etc/default/grub.d/50-cloudimg-settings.cfg 
 
@@ -212,14 +234,83 @@ sudo vi /etc/default/grub.d/50-cloudimg-settings.cfg
 GRUB_CMDLINE_LINUX_DEFAULT="~~existing stuff~~ quiet cgroup_enable=memory swapaccount=1”
 ```
 
+> [!IMPORTANT]
+> According to the documentation, it will have you edit the `/etc/default/grub1`. If you are running on your own hardware, that is fine but if you are using AWS, please do not do this. It will be overwritten by `/etc/default/grub.d/50-cloudimg-settings.cfg`. All of the parameters should be seen from `cat /proc/cmdline`. If you don't see everything that something is wrong.
+
+> [!IMPORTANT]
+> If you are using a system that uses cgroups v2 by default (like I ubuntu AWS), you need to add `systemd.unified_cgroup_hierarchy=0` to the `GRUB_CMDLINE_LINUX_DEFAULT`. This will force cgroups v1 which is what DOMJudge likes. This would look like:
+
 ```
-# Update changes; the reboot will take a little bit
+sudo vi /etc/default/grub.d/50-cloudimg-settings.cfg 
+
+/* In line 11 (probably), append the following */
+GRUB_CMDLINE_LINUX_DEFAULT="~~existing stuff~~ quiet cgroup_enable=memory swapaccount=1 systemd.unified_cgroup_hierarchy=0”
+```
+
+Update change the changes. The reboot will take a little bit if your on AWS.
+
+```
 sudo update-grub
 sudo reboot
 ```
+
+Oh no, you've been kicked out of SSH! It's fine. Now you wait until the EC2 is done rebooting. This should take only about a minute.
 
 ## Connecting to the Server
 
 You have to go into the actual server UI in order to make sure that your judgehost user and password are set. As the admin, go to the ip/domjudge/jury where you see a bunch of links to important places. Under Before Contest, go to the Users and then to the judgehost user. I was having trouble with this for a while and so I edit the user. You have to make sure that this user (judgehost) has the same username (judgehost) and password (should be automatically set but I did it manually and it worked) as the restapi.secret on the DOMJudge judgehost EC2 instance (found at .../domjudge/judgehost/etc/restapi.secreBefore Contest, go to the Users and then to the judgehost user. I was having trouble with this for a while and so I edit the user. You have to make sure that this user (judgehost) has the same username (judgehost) and password (should be automatically set but I did it manually and it worked) as the restapi.secret on the DOMJudge judgehost EC2 instance (found at .../domjudge/judgehost/etc/restapi.secret). The judge EC2 instance should now be able to talk to the DOMServer EC2 instance.
 
+## Permissions
 
+```
+# In the etc file directory
+cd ~/domjudge/judgehost/etc
+sudo cp sudoers-domjudge /etc/sudoers.d/
+```
+## Creating the CGroups
+
+```
+# In the bin file directory
+cd ~/domjudge/judgehost/bin
+sudo groupadd domjudge-run
+sudo useradd -g domjudge-run -M -s /bin/false domjudge-run
+sudo systemctl enable create-cgroups --now
+sudo ./dj_make_chroot
+```
+
+## Running the Judge
+
+```
+# In the bin file directory
+cd ~/domjudge/judgehost/bin
+./judgedaemon
+```
+
+## Current State
+
+I am facing errors with the Judge not being able to complie any of the user submissions.
+
+The internal error:
+
+```
+[Feb 21 03:51:17.656] judgedaemon[14619]:   💾 Fetching new executable 'compare/1' with hash 'cf0a04ed136ac59cb9ee3296a5fe9bba'.
+[Feb 21 03:51:17.656] judgedaemon[14619]: API request GET judgehosts/get_files/compare/1
+[Feb 21 03:51:17.684] judgedaemon[14619]: Building executable in /home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/executable/compare/1/cf0a04ed136ac59cb9ee3296a5fe9bba, under 'build/'
+[Feb 21 03:51:18.535] testcase_run.sh[15027]: starting '/home/ubuntu/domjudge/judgehost/lib/judge/testcase_run.sh', PID = 15027
+[Feb 21 03:51:18.538] testcase_run.sh[15027]: arguments: '/home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/testcase/1/b026324c6904b2a9cb4b88d6d61c81d1_59ca0efa9f5633cb0371bbc0355478d8.in' '/home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/testcase/1/b026324c6904b2a9cb4b88d6d61c81d1_59ca0efa9f5633cb0371bbc0355478d8.out' '5:6' '/home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/1/1/testcase00001'
+[Feb 21 03:51:18.540] testcase_run.sh[15027]: optionals: '/home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/executable/run/4/b5ea8d9ef4caee54508d7571c8206757/build/run' '/home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/executable/compare/1/cf0a04ed136ac59cb9ee3296a5fe9bba/build/run' ''
+[Feb 21 03:51:18.548] testcase_run.sh[15027]: setting up testing (chroot) environment
+[Feb 21 03:51:18.565] testcase_run.sh[15027]: running program
+[Feb 21 03:51:18.568] testcase_run.sh[15027]: runcheck: /home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/executable/run/4/b5ea8d9ef4caee54508d7571c8206757/build/run testdata.in program.out sudo -n /home/ubuntu/domjudge/judgehost/bin/runguard -r /home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/1/1/testcase00001/.. --nproc=64 --no-core --streamsize=8192 --user=domjudge-run --group=domjudge-run --walltime=5:6 --cputime=5:6 --memsize=2097152 --filesize=8192 --stderr=program.err --outmeta=program.meta -- /testcase00001/execdir/program
+[Feb 21 03:51:18.649] testcase_run.sh[15027]: comparing output
+[Feb 21 03:51:18.653] testcase_run.sh[15027]: starting compare script '/home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/executable/compare/1/cf0a04ed136ac59cb9ee3296a5fe9bba/build/run'
+[Feb 21 03:51:18.659] testcase_run.sh[15027]: runcheck: sudo -n /home/ubuntu/domjudge/judgehost/bin/runguard -u domjudge-run -g domjudge-run -m 2097152 -t 30 -c -f 2621440 -s 2621440 -M compare.meta -- /home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/executable/compare/1/cf0a04ed136ac59cb9ee3296a5fe9bba/build/run testdata.in testdata.out feedback/
+[Feb 21 03:51:18.714] testcase_run.sh[15027]: checking compare script exit-status: 255
+[Feb 21 03:51:18.721] testcase_run.sh[15027]: Comparing failed with exitcode 255, compare script output:
+
+---------- output validator stdout/stderr messages ----------
+/home/ubuntu/domjudge/judgehost/bin/runguard: cannot start `/home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/executable/compare/1/cf0a04ed136ac59cb9ee3296a5fe9bba/build/run': Permission denied
+Try `/home/ubuntu/domjudge/judgehost/bin/runguard --help' for more information.
+[Feb 21 03:51:18.730] testcase_run.sh[15027]: exiting with status '120'
+[Feb 21 03:51:18.732] judgedaemon[14619]: comparing failed for compare script '1'
+```
