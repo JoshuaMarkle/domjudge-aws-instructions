@@ -266,6 +266,8 @@ You have to go into the actual server UI in order to make sure that your judgeho
 # In the etc file directory
 cd ~/domjudge/judgehost/etc
 sudo cp sudoers-domjudge /etc/sudoers.d/
+# Specific to installing in the home directory
+chmod +rx /home/ubuntu
 ```
 ## Creating the CGroups
 
@@ -286,31 +288,4 @@ cd ~/domjudge/judgehost/bin
 ./judgedaemon
 ```
 
-## Current State
-
-I am facing errors with the Judge not being able to complie any of the user submissions.
-
-The internal error:
-
-```
-[Feb 21 03:51:17.656] judgedaemon[14619]:   💾 Fetching new executable 'compare/1' with hash 'cf0a04ed136ac59cb9ee3296a5fe9bba'.
-[Feb 21 03:51:17.656] judgedaemon[14619]: API request GET judgehosts/get_files/compare/1
-[Feb 21 03:51:17.684] judgedaemon[14619]: Building executable in /home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/executable/compare/1/cf0a04ed136ac59cb9ee3296a5fe9bba, under 'build/'
-[Feb 21 03:51:18.535] testcase_run.sh[15027]: starting '/home/ubuntu/domjudge/judgehost/lib/judge/testcase_run.sh', PID = 15027
-[Feb 21 03:51:18.538] testcase_run.sh[15027]: arguments: '/home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/testcase/1/b026324c6904b2a9cb4b88d6d61c81d1_59ca0efa9f5633cb0371bbc0355478d8.in' '/home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/testcase/1/b026324c6904b2a9cb4b88d6d61c81d1_59ca0efa9f5633cb0371bbc0355478d8.out' '5:6' '/home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/1/1/testcase00001'
-[Feb 21 03:51:18.540] testcase_run.sh[15027]: optionals: '/home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/executable/run/4/b5ea8d9ef4caee54508d7571c8206757/build/run' '/home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/executable/compare/1/cf0a04ed136ac59cb9ee3296a5fe9bba/build/run' ''
-[Feb 21 03:51:18.548] testcase_run.sh[15027]: setting up testing (chroot) environment
-[Feb 21 03:51:18.565] testcase_run.sh[15027]: running program
-[Feb 21 03:51:18.568] testcase_run.sh[15027]: runcheck: /home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/executable/run/4/b5ea8d9ef4caee54508d7571c8206757/build/run testdata.in program.out sudo -n /home/ubuntu/domjudge/judgehost/bin/runguard -r /home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/1/1/testcase00001/.. --nproc=64 --no-core --streamsize=8192 --user=domjudge-run --group=domjudge-run --walltime=5:6 --cputime=5:6 --memsize=2097152 --filesize=8192 --stderr=program.err --outmeta=program.meta -- /testcase00001/execdir/program
-[Feb 21 03:51:18.649] testcase_run.sh[15027]: comparing output
-[Feb 21 03:51:18.653] testcase_run.sh[15027]: starting compare script '/home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/executable/compare/1/cf0a04ed136ac59cb9ee3296a5fe9bba/build/run'
-[Feb 21 03:51:18.659] testcase_run.sh[15027]: runcheck: sudo -n /home/ubuntu/domjudge/judgehost/bin/runguard -u domjudge-run -g domjudge-run -m 2097152 -t 30 -c -f 2621440 -s 2621440 -M compare.meta -- /home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/executable/compare/1/cf0a04ed136ac59cb9ee3296a5fe9bba/build/run testdata.in testdata.out feedback/
-[Feb 21 03:51:18.714] testcase_run.sh[15027]: checking compare script exit-status: 255
-[Feb 21 03:51:18.721] testcase_run.sh[15027]: Comparing failed with exitcode 255, compare script output:
-
----------- output validator stdout/stderr messages ----------
-/home/ubuntu/domjudge/judgehost/bin/runguard: cannot start `/home/ubuntu/domjudge/judgehost/judgings/ip-172-31-30-105/endpoint-default/executable/compare/1/cf0a04ed136ac59cb9ee3296a5fe9bba/build/run': Permission denied
-Try `/home/ubuntu/domjudge/judgehost/bin/runguard --help' for more information.
-[Feb 21 03:51:18.730] testcase_run.sh[15027]: exiting with status '120'
-[Feb 21 03:51:18.732] judgedaemon[14619]: comparing failed for compare script '1'
-```
+And that should be everything. You should have no internal errors (except maybe the configuration) and everything should work as needed :happy:
