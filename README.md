@@ -1,27 +1,33 @@
-# Setup DOMJudge Server
+# Setup DOMJudge Server With AWS
 
 This is a minimal install of the DOMJudge server. This will affect some of the choices made within this instruction set to try and minimize the cost of the server.
 
 > [!IMPORTANT]
-> Staying within the free tier is not possible because of the web traffic. It will cost a few cents in order to run the server for competitions but it will not be a large amount of money. Depending on the load, it will range from a dollar to a sandwitch from subway.
+> Staying within the free tier is not possible because AWS charges the web traffic. It will cost a few cents in order to run the server for competitions but it will not be a large amount of money. Depending on the load, it will range from a few cents to a dollar per competition.
 
 ## Make The Account
 
-Go through the process to make a new account. This account will need to have a payment method in order for it to work. Go through the entire process of verifying your account and then your almost set to go.
+Go through the process to make a new account. This account needs to have a payment method in order for it to create EC2 instances. Go through the entire process of verifying your account.
 
 > [!NOTE]
 > This will take some time. After completing the verification process, you will have to wait an hour or two (up to 24h according to AWS)
 
 ## Make The Instance
 
-On the homepage in the first widget, click on the EC2 and this will bring you to the EC2 page. Create An Instance to host the actual DOMJudge. This instance is going to be Ubuntu preset with t2.micro (for that free tier).
+On the homepage in the first widget, click on the EC2 and this will bring you to the EC2 page. Create An Instance to host the actual DOMJudge. 
+
+For this example installation, the instance will be:
+
+- A ubuntu operating sysetem
+- t2.micro processor
+- 12GB (GP2)
 
 > [!IMPORTANT]
-> The actual EC2 will depend on your specific needs. This is a minimal installation that attemps to stay mostly within free tier (not entirely possible).
+> The actual EC2 will depend on your specific needs. This is a minimal installation that attemps to stay as cheap as possible. It also assumes very simple problems that have a relatively small input and output (smaller storage needed)
 
-Create a simple RSA keypair (pem) and store it in a safe location on your computer (You will use this later).
+Create a RSA keypair (pem) and store it in a safe location on your computer (You will use this later to ssh into the server).
 
-Configuring the network settings. I have set allow SSH traffic from any IP (I know that is not good practice but this is convient). Also set the web traffic to true for HTTPS and HTTP for the actual website I think. I have set the storage to 10GB but I'm sure the default 8GB would work just as well (GP2). As long as it is within the free tier.
+As for the network settings, allow SSH traffic from any IP (This is not good practice but this is convient). If you aren't comfortable by that, you can set it to your computer's unique IP address so only you can login. You will need to set the web traffic to true for both HTTPS and HTTP.
 
 ## Setup the Database
 
