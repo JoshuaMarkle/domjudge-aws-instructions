@@ -66,7 +66,7 @@ sudo apt upgrade
 
 ## Dependencies
 
-> [NOTE]
+> [!NOTE]
 > Running this will take a bit of time...
 
 ```
