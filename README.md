@@ -356,4 +356,6 @@ If your judge does not connect to the DOM Server under the Judgehosts tab, then 
 
 Here are good places to look if you are looking to do something more specific or are in need of help I don't have.
 
-- The [DomJudge Manual](https://www.domjudge.org/docs/manual/8.2/index.html)
+- The [DomJudge Manual](https://www.domjudge.org/docs/manual/8.2/index.html) for the **official** documentation
+- The DOMJudge [Slack Group](https://domjudge-org.slack.com/). This is an underrated resource! Solved all of the problems that aren't solved directly in the Docs or GitHub Issues. I highly suggest looking through or chatting with someone about an issue you can't find in the docs.
+- The [DomJudge Website](https://www.domjudge.org/) (where I got all these good resources)
