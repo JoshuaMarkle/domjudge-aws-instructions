@@ -348,6 +348,12 @@ cd ~/domjudge/judgehost/bin
 ./judgedaemon
 ```
 
-And that should be everything. You should have no internal errors (except maybe the configuration) and everything should work as needed :happy:
+And that should be everything. You should have no internal errors (except maybe the configuration) and everything should work as needed :heart:
 
 If your judge does not connect to the DOM Server under the Judgehosts tab, then something is wrong with the `restapi.secret` on the judgehost server. Redo the Connecting To The Server section of this guide.
+
+# References
+
+Here are good places to look if you are looking to do something more specific or are in need of help I don't have.
+
+- The [DomJudge Manual](https://www.domjudge.org/docs/manual/8.2/index.html)
