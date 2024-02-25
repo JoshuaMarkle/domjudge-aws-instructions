@@ -1,48 +1,63 @@
 # Setup DOMJudge Server With AWS
 
-This is a minimal install of the DOMJudge server. This will affect some of the choices made within this instruction set to try and minimize the cost of the server.
+This is a minimal install of the DOMJudge server. This will affect some of the choices made within this instruction set to try and minimize the cost of the server. The most minimal install will work best with under 20 teams and problems that do not require that much time to compute (smaller inputs and outputs). If you want to create a competition with computation heavy problems, you will have to select a more powerful EC2 (talked about later).
 
 > [!IMPORTANT]
 > Staying within the free tier is not possible because AWS charges the web traffic. It will cost a few cents in order to run the server for competitions but it will not be a large amount of money. Depending on the load, it will range from a few cents to a dollar per competition.
 
-## Make The Account
+## Commonly Used Terms
 
-Go through the process to make a new account. This account needs to have a payment method in order for it to create EC2 instances. Go through the entire process of verifying your account.
+Just a small list of things that you should know to fully understand this install
+
+- AWS: Amazon Web Services is a service by Amazon that offers cloud servers that will run all of the backend code to the DOMJudge
+- EC2: The name of the specific sever type that we are using on AWS.
+- DOM Server: All of the DOMJudge code that runs the server. It has its own dedicated EC2 in this install.
+- DOM Judge: All of the DOMJudge code that tests user submissions on the DOM Server. It has its own dedicated EC2 in this install. You can have as many judges as you need depending on the number of teams.
+
+## Creating The Account
+
+Go through the process to make a new AWS account on [https://aws.amazon.com/](https://aws.amazon.com/). This account is required to have a payment method attached in order for the ability to create EC2 instances. Go through the entire process of verifying your account.
 
 > [!NOTE]
-> This will take some time. After completing the verification process, you will have to wait an hour or two (up to 24h according to AWS)
+> This will take some time. After completing the verification process, you will have to wait an hour or two (up to 24h according to AWS) for your account to be verified.
 
 ## Make The Instance
 
-On the homepage in the first widget, click on the EC2 and this will bring you to the EC2 page. Create An Instance to host the actual DOMJudge. 
+On the homepage in the first widget, click on EC2. This will bring you to a page with all of your EC2 instances. Create An Instance to host the actual DOM Server. 
 
-For this example installation, the instance will be:
+For this minimal installation, the instance will be:
 
-- A ubuntu operating sysetem
-- t2.micro processor
+- Named: DOMServer
+- A Ubuntu Operating Sysetem
+- t2.micro Processor
 - 12GB (GP2)
 
 > [!IMPORTANT]
-> The actual EC2 will depend on your specific needs. This is a minimal installation that attemps to stay as cheap as possible. It also assumes very simple problems that have a relatively small input and output (smaller storage needed)
+> The actual EC2 will depend on your specific needs. This is a minimal installation that attemps to stay as cheap as possible. If you are going to have a bunch of competitions at once with a lot of problems, it might be a good idea to select more storage space. (Anything under 30GB is within the free tier)
 
-Create a RSA keypair (pem) and store it in a safe location on your computer (You will use this later to ssh into the server).
+Make sure to create a RSA keypair (pem) and store it in a safe location on your computer. You will use this later to ssh into the server. I named mine DOMJudge.
 
-As for the network settings, allow SSH traffic from any IP (This is not good practice but this is convient). If you aren't comfortable by that, you can set it to your computer's unique IP address so only you can login. You will need to set the web traffic to true for both HTTPS and HTTP.
+As for the network settings, allow SSH traffic from any IP (This is not good practice but this is convient for me). If you aren't comfortable by that, you can set it to your computer's unique IP address so only you can ssh from that specfic computer. You will need to set the web traffic to true for both HTTPS and HTTP.
 
 ## Setup the Database
 
-Now that the EC2 Instance has been created, we can now ssh into the server. Go to the actual EC2 instance in AWS probably under my EC2 instances or something. Here you can find the public IP.
+Now that the EC2 Instance has been created, we can now ssh into the server. Go to the the EC2 Instances page on AWS. Here you can click on your EC2 for find the public IP.
 
 SSH into the server to start installing
 
 ```
-ssh -i /path/to/pemFile ubuntu@public_ip_address_of_EC2
+ssh -i /path/to/pemFile.pem ubuntu@public_ip_address_of_EC2
 ```
+
+Example: `ssh -i DomJudge.pem ubuntu@169.254.369.254`
 
 ## Update Server
 
 > [!WARNING]
 > The dependencies will not work correctly without an update to the system.
+
+> [!NOTE]
+> If you chose an operating system other than Ubuntu, this might look different depending on the OS you chose
 
 ```
 sudo apt update
@@ -51,19 +66,28 @@ sudo apt upgrade
 
 ## Dependencies
 
+> [NOTE]
+> Running this will take a bit of time...
+
 ```
 sudo apt install acl zip unzip mariadb-server apache2 \
-    php php-fpm php-gd php-cli php-intl php-mbstring php-mysql \
-    php-curl php-json php-xml php-zip composer ntp
-
-sudo apt install autoconf automake bats gcc \
-    python3-sphinx python3-sphinx-rtd-theme rst2pdf fontconfig python3-yaml \
-    latexmk texlive-latex-recommended texlive-latex-extra tex-gyre
-
-sudo apt install -y gcc g++ make zip unzip php-fpm php-cli php-gd php-curl php-mbstring php-mysql php-json php-xml php-zip bsdmainutils ntp linuxdoc-tools linuxdoc-tools-text groff texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended apache2 mysql-client mysql-server libapache2-mod-php libcgroup-dev
+    php php-fpm php-gd php-cli php-intl php-mbstring \
+    php-mysql php-curl php-json php-xml php-zip composer \
+    ntp autoconf automake bats gcc python3-sphinx \
+    python3-sphinx-rtd-theme rst2pdf fontconfig python3-yaml \
+    latexmk texlive-latex-recommended texlive-latex-extra \
+    tex-gyre gcc g++ make zip unzip php-fpm php-cli php-gd \
+    php-curl php-mbstring php-mysql php-json php-xml php-zip \
+    bsdmainutils ntp linuxdoc-tools linuxdoc-tools-text \
+    groff texlive-latex-recommended texlive-latex-extra \
+    texlive-fonts-recommended apache2 mysql-client \
+    mysql-server libapache2-mod-php libcgroup-dev
 ```
 
 Now to actually download all of the code for DOMJudge. For this install, I am using DOMJudge 8.2.2:
+
+> [!NOTE]
+> If there is a newer version of DOMJudge, I suggest using that version. This link was taken right off of [https://www.domjudge.org](https://www.domjudge.org). If you do have a different version, the next few commands will change based on that version.
 
 ```
 wget https://www.domjudge.org/releases/domjudge-8.2.2.tar.gz
@@ -77,7 +101,7 @@ tar -xf domjudge-8.2.2.tar.gz
 
 ## Bootstrap The Configuration File
 
-Since the downloaded and extracted domjudge doesn't inherently have a `configure` script by default, you will have to manually build it.
+Since the downloaded and extracted domjudge doesn't inherently have a `configure` script by default, you will have to manually build it with `make dist`.
 
 ```
 cd domjudge-8.2.2
@@ -86,7 +110,10 @@ make dist
 
 ## Install DOMJudge Server
 
-This will install the actualy DOMServer in the ~ directory. You can run the `configure` script without the prefix and I think it will install to `/opt/` but I'm not sure about that.
+This will install the actualy DOMServer in the ~ directory.
+
+> [!NOTE]
+> You can change the prefex to any directory. Installing in the home directory is going to cause a few problems that are fixed later but I think makes everything easier to track.
 
 ```
 ./configure --prefix=$HOME/domjudge
@@ -101,19 +128,25 @@ Create the randomly generated password for the database. Inside the `domserver/b
 ```
 cd ~/domjudge/domserver/bin
 ./dj_setup_database genpass
+```
+
+If you want fine control over the database, you can edit the `dbpasswords.secret` to make your own password to access the database
+
+```
 cd ~/domjudge/domserver/etc
 sudo vi dbpasswords.secret
 ```
 
-You can edit this to make your own password to access the database. It will look something like this.
+The file will look something like this:
 
 ```
-# Randomly generated on host ip-*-*-*-*, Thu Oct 26 12:03:44 UTC 2017
+# Randomly generated on host ip-*-*-*-*, Thu Oct * *:*:* UTC *
 # Format: 'dummy:<db_host>:<db_name>:<user>:<password>'
 dummy:localhost:domjudge:domjudge:_YourPasswordHere_
 ```
 
-Resolve any dumb SQL errors
+> [!WARNING]
+> Make sure that SQL is actually working with the command: `sudo systemctl status mysql`. If it is not enabled, enable it. If it is not running or if you get any dumb SQL errors (like me), I suggest doing a clean reinstall for mysql:
 
 ```
 sudo rm -rf /etc/mysql
@@ -124,7 +157,9 @@ sudo apt-get update && sudo apt-get upgrade
 sudo apt-get install mysql-server
 ```
 
-Now to actually setup the database
+It should be working now.
+
+Now to actually setup the DOMJudge database:
 
 ```
 cd ~/domjudge/domserver/bin
@@ -135,9 +170,11 @@ sudo ./dj_setup_database install
 
 This is basically all from the docs and works by itself.
 
-*Note: the php version will probably change in the future. Change to your version*
+> [!NOTE]
+> The php version will probably change in the future. You are going to have to change to your version
 
-*Note: the ln and a2enmod might require sudo in front*
+> [!CAUTION]
+> If you receieve a Permissions Error (probably for ln or a2enmod), add a `sudo` to the beginning of the command.
 
 ```
 ln -s ~/domjudge/domserver/etc/apache.conf /etc/apache2/conf-available/domjudge.conf
@@ -148,7 +185,10 @@ sudo systemctl reload php8.1-fpm
 sudo systemctl reload apache2
 ```
 
-Now your webserver should be working. Put in the public IP address to the server into the search bar (http not https). The public IP by itself should show a "It's working page" from apache. Now lookup: `http://public_ip/domjudge`. If you get an error page (Forbidden), first check the error logs:
+Now your webserver should be working. Put in the public IP address to the server into the search bar (http not https). The public IP by itself should show a "It's working page" from apache. Now lookup: `http://public_ip/domjudge`.
+
+> [!WARNING]
+> If you get an error page (Forbidden), first check the error logs with:
 
 ```
 sudo tail -f /var/log/apache2/error.log
@@ -164,11 +204,7 @@ I had a permission error and this is what worked for me.
 chmod +x /home/ubuntu
 ```
 
-*Note: this is probably because I installed domjudge in my home directory haha*
-
 Now, you should be able to see the DOMJudge website with a login (`http://public_ip/domjudge`).
-
-If you have any other errors, sorry :/
 
 # Installing DOMJudge Judges
 
@@ -184,33 +220,36 @@ sudo apt upgrade
 ## Dependencies
 
 ```
-sudo apt install gcc g++ make cmake zip unzip debootstrap
+sudo apt install gcc g++ make cmake zip unzip debootstrap \
+    acl zip unzip mariadb-server apache2 php php-fpm \
+    php-gd php-cli php-intl php-mbstring php-mysql \
+    php-curl php-json php-xml php-zip composer ntp \
+    autoconf automake bats python3-sphinx \
+    python3-sphinx-rtd-theme rst2pdf fontconfig \
+    python3-yaml latexmk texlive-latex-recommended \
+    texlive-latex-extra tex-gyre make pkg-config sudo \
+    debootstrap libcgroup-dev php-cli php-curl php-json \
+    php-xml php-zip lsof procps
 
-sudo apt install acl zip unzip mariadb-server apache2 \
-    php php-fpm php-gd php-cli php-intl php-mbstring php-mysql \
-    php-curl php-json php-xml php-zip composer ntp
-
-sudo apt install autoconf automake bats \
-    python3-sphinx python3-sphinx-rtd-theme rst2pdf fontconfig python3-yaml \
-    latexmk texlive-latex-recommended texlive-latex-extra tex-gyre
-
-sudo apt install make pkg-config sudo debootstrap libcgroup-dev \
-      php-cli php-curl php-json php-xml php-zip lsof procps
-
-# Uninstall apport because it conflicts with judgehosts?
 sudo apt remove apport
 ```
 
+> [!CAUTION]
+> Make sure to uninstall the `apport` package. This will conflict with the judgehosts ability to judge submissions. `sudo apt remove apport`
+
 
 ## Download DOMJudge 8.2.2
+
+Again, I am using DOMJudge 8.2.2 and if you are using a different release, then the next few lines will be unique to you.
 
 ```
 wget https://www.domjudge.org/releases/domjudge-8.2.2.tar.gz
 tar -xf domjudge-8.2.2.tar.gz
 ```
 
+Go into to the `~/domjudge-8.2.2` to build the judgehosts
+
 ```
-# Go back to the ~/domjudge-8.2.2 to build the judgehosts
 cd ~/domjudge-8.2.2
 make dist
 ./configure --prefix=$HOME/domjudge
@@ -228,11 +267,14 @@ lscpu | grep "Thread(s) per core"
 cat /sys/devices/system/cpu/smt/active
 ```
 
-If you have a value of 1 or above, it is possible. It is really nice to run multiple judges on one machine. I do not have this ability (because of free tier) so I will not do the hyperthreading stuff.
+If you have a value of 1 or above, it is possible. It is really nice to run multiple judges on one machine. I do not have this ability (because of free tier) so I will not do the hyperthreading stuff. If you are, check out the DOMJudge docs and good luck to you :smile:
 
-## CGroups
+## Setting Up CGroups
+
+The CGroups are used for security reasons. I do not think that you have to install them but I highly recommend that you do just to be safe.
 
 Add `quiet cgroup_enable=memory swapaccount=1` to the end of `GRUB_CMDLINE_LINUX_DEFAULT`
+
 ```
 sudo vi /etc/default/grub.d/50-cloudimg-settings.cfg 
 
@@ -241,10 +283,10 @@ GRUB_CMDLINE_LINUX_DEFAULT="~~existing stuff~~ quiet cgroup_enable=memory swapac
 ```
 
 > [!IMPORTANT]
-> According to the documentation, it will have you edit the `/etc/default/grub1`. If you are running on your own hardware, that is fine but if you are using AWS, please do not do this. It will be overwritten by `/etc/default/grub.d/50-cloudimg-settings.cfg`. All of the parameters should be seen from `cat /proc/cmdline`. If you don't see everything that something is wrong.
+> According to the documentation, it will have you edit the `/etc/default/grub`. If you are running on your own hardware, that is fine but if you are using AWS, please do not do this. It will be overwritten by `/etc/default/grub.d/50-cloudimg-settings.cfg`. All of the parameters that you just added should be visible after running `cat /proc/cmdline`. If you don't see everything character for character, then something is wrong.
 
-> [!IMPORTANT]
-> If you are using a system that uses cgroups v2 by default (like I ubuntu AWS), you need to add `systemd.unified_cgroup_hierarchy=0` to the `GRUB_CMDLINE_LINUX_DEFAULT`. This will force cgroups v1 which is what DOMJudge likes. This would look like:
+> [!WARNING]
+> If you are using a system that uses cgroups v2 by default (like I Ubuntu AWS), you need to add `systemd.unified_cgroup_hierarchy=0` to the `GRUB_CMDLINE_LINUX_DEFAULT`. This will force cgroups v1 which is what DOMJudge likes. This would look like:
 
 ```
 sudo vi /etc/default/grub.d/50-cloudimg-settings.cfg 
@@ -253,29 +295,33 @@ sudo vi /etc/default/grub.d/50-cloudimg-settings.cfg
 GRUB_CMDLINE_LINUX_DEFAULT="~~existing stuff~~ quiet cgroup_enable=memory swapaccount=1 systemd.unified_cgroup_hierarchy=0”
 ```
 
-Update change the changes. The reboot will take a little bit if your on AWS.
+Update change the changes. You will be kicked out of the SSH and will have to wait a bit until the reboot is complete.
 
 ```
 sudo update-grub
 sudo reboot
 ```
 
-Oh no, you've been kicked out of SSH! It's fine. Now you wait until the EC2 is done rebooting. This should take only about a minute.
+After the reboot, ssh back into the EC2 with the instructions above.
 
-## Connecting to the Server
+## Update Judge Permissions
 
-You have to go into the actual server UI in order to make sure that your judgehost user and password are set. As the admin, go to the ip/domjudge/jury where you see a bunch of links to important places. Under Before Contest, go to the Users and then to the judgehost user. I was having trouble with this for a while and so I edit the user. You have to make sure that this user (judgehost) has the same username (judgehost) and password (should be automatically set but I did it manually and it worked) as the restapi.secret on the DOMJudge judgehost EC2 instance (found at .../domjudge/judgehost/etc/restapi.secreBefore Contest, go to the Users and then to the judgehost user. I was having trouble with this for a while and so I edit the user. You have to make sure that this user (judgehost) has the same username (judgehost) and password (should be automatically set but I did it manually and it worked) as the restapi.secret on the DOMJudge judgehost EC2 instance (found at .../domjudge/judgehost/etc/restapi.secret). The judge EC2 instance should now be able to talk to the DOMServer EC2 instance.
-
-## Permissions
+The judge will need certain permissions in order to create the CGroups and run submission code. You can give the judge these required permissions by moving an already created DOMJudge sudoers file.
 
 ```
 # In the etc file directory
 cd ~/domjudge/judgehost/etc
 sudo cp sudoers-domjudge /etc/sudoers.d/
+```
+
+> [!IMPORTANT]
+> If you installed in the home directory (like directed in this guide), then you need to run:
+
+```
 # Specific to installing in the home directory
 chmod +rx /home/ubuntu
 ```
-## Creating the CGroups
+## Creating The CGroups
 
 ```
 # In the bin file directory
@@ -286,7 +332,15 @@ sudo systemctl enable create-cgroups --now
 sudo ./dj_make_chroot
 ```
 
-## Running the Judge
+## Connecting To The Server
+
+For this next section, you will make sure that the `restapi.secret` on both the DOM Server EC2 and DOM Judge match with the goal of connecting the Judge EC2 to the Server EC2. The sever should tell the judge what user submission to judge as correct or incorrect.
+
+You have to go into the actual server UI in order to make sure that your judgehost user and password are set. Go to the domserver_public_ip/domjudge/ in a web browser and login as the admin (credintials are located in the DOM Server EC2: `~/domjudge/domserver/etc/initial_admin_password.secret`).
+
+Now you'll see a bunch of links to important places. Under Before Contest, go to the Users and then to the judgehost user. I was having trouble with this for a while. You need to edit the judgehost user and manually set the password. I think that it should be automatic but manually setting it worked for me. You need to manually set this judgehost's user password as the randomly generated one in the DOM Judge EC2 (`~/domjudge/judgehost/etc/restapi.secret`).
+
+## Running The Judge
 
 ```
 # In the bin file directory
@@ -295,3 +349,5 @@ cd ~/domjudge/judgehost/bin
 ```
 
 And that should be everything. You should have no internal errors (except maybe the configuration) and everything should work as needed :happy:
+
+If your judge does not connect to the DOM Server under the Judgehosts tab, then something is wrong with the `restapi.secret` on the judgehost server. Redo the Connecting To The Server section of this guide.
