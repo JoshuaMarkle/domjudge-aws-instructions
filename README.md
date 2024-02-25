@@ -204,7 +204,7 @@ I had a permission error and this is what worked for me.
 chmod +x /home/ubuntu
 ```
 
-Now, you should be able to see the DOMJudge website with a login (`http://public_ip/domjudge`).
+Now, you should be able to see the DOMJudge website with a login (`http://public_ip/domjudge`). The admin username is `admin` and the password is located in: `~/domjudge/domserver/etc/initial_admin_password.secret`. If you can't see the DOMJudge webserver, something has gone wrong :anguished:.
 
 # Installing DOMJudge Judges
 
@@ -283,8 +283,7 @@ GRUB_CMDLINE_LINUX_DEFAULT="~~existing stuff~~ quiet cgroup_enable=memory swapac
 ```
 
 > [!IMPORTANT]
-> According to the documentation, it will have you edit the `/etc/default/grub`. If you are running on your own hardware, that is fine but if you are using AWS, please do not do this. It will be overwritten by `/etc/default/grub.d/50-cloudimg-settings.cfg`. All of the parameters that you just added should be visible after running `cat /proc/cmdline`. If you don't see everything character for character, then something is wrong.
-
+> According to the documentation, it will have you edit the `/etc/default/grub`. If you are running on your own hardware, that is fine but if you are using AWS, please do not do this. It will be overwritten by `/etc/default/grub.d/50-cloudimg-settings.cfg`. 
 > [!WARNING]
 > If you are using a system that uses cgroups v2 by default (like I Ubuntu AWS), you need to add `systemd.unified_cgroup_hierarchy=0` to the `GRUB_CMDLINE_LINUX_DEFAULT`. This will force cgroups v1 which is what DOMJudge likes. This would look like:
 
@@ -303,6 +302,9 @@ sudo reboot
 ```
 
 After the reboot, ssh back into the EC2 with the instructions above.
+
+> ![WARNING]
+> All of the parameters that you just added should be visible after running `cat /proc/cmdline`. If you don't see everything character for character, then something is wrong.
 
 ## Update Judge Permissions
 
