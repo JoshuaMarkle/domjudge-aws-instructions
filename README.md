@@ -358,7 +358,7 @@ If your judge does not connect to the DOM Server under the Judgehosts tab, then 
 
 # Running Contests
 
-This guide is designed to install and setup the basics for the DOMJudge server so I won't go in depth on how to make a contest or problems. Everything is pretty straightforward on the website. Everything is accessible on that admin dashboard page! Good luck :smile:
+This guide is designed to install and setup the basics for the DOMJudge server so I won't go in depth on how to make a contest or problems. Everything is pretty straightforward and accessible on that admin dashboard page! Good luck :smile:
 
 # References
 
