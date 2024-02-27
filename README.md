@@ -2,6 +2,8 @@
 
 This is a minimal install of the DOMJudge server. This will affect some of the choices made within this instruction set to try and minimize the cost of the server. The most minimal install will work best with under 20 teams and problems that do not require that much time to compute (smaller inputs and outputs). If you want to create a competition with computation heavy problems, you will have to select a more powerful EC2 (talked about later).
 
+If you have a specific use-case or problem, take a look at the **Reference** section at the back of this guide :smile:.
+
 > [!IMPORTANT]
 > Staying within the free tier is not possible because AWS charges the web traffic. It will cost a few cents in order to run the server for competitions but it will not be a large amount of money. Depending on the load, it will range from a few cents to a dollar per competition.
 
@@ -23,7 +25,7 @@ Go through the process to make a new AWS account on [https://aws.amazon.com/](ht
 
 ## Make The Instance
 
-On the homepage in the first widget, click on EC2. This will bring you to a page with all of your EC2 instances. Create An Instance to host the actual DOM Server. 
+On the homepage in the first widget, click on EC2. This will bring you to a page with all of your EC2 instances. Create An Instance to host the actual DOM Server.
 
 For this minimal installation, the instance will be:
 
@@ -276,19 +278,19 @@ The CGroups are used for security reasons. I do not think that you have to insta
 Add `quiet cgroup_enable=memory swapaccount=1` to the end of `GRUB_CMDLINE_LINUX_DEFAULT`
 
 ```
-sudo vi /etc/default/grub.d/50-cloudimg-settings.cfg 
+sudo vi /etc/default/grub.d/50-cloudimg-settings.cfg
 
 /* In line 11 (probably), append the following */
 GRUB_CMDLINE_LINUX_DEFAULT="~~existing stuff~~ quiet cgroup_enable=memory swapaccount=1”
 ```
 
 > [!IMPORTANT]
-> According to the documentation, it will have you edit the `/etc/default/grub`. If you are running on your own hardware, that is fine but if you are using AWS, please do not do this. It will be overwritten by `/etc/default/grub.d/50-cloudimg-settings.cfg`. 
+> According to the documentation, it will have you edit the `/etc/default/grub`. If you are running on your own hardware, that is fine but if you are using AWS, please do not do this. It will be overwritten by `/etc/default/grub.d/50-cloudimg-settings.cfg`.
 > [!WARNING]
 > If you are using a system that uses cgroups v2 by default (like I Ubuntu AWS), you need to add `systemd.unified_cgroup_hierarchy=0` to the `GRUB_CMDLINE_LINUX_DEFAULT`. This will force cgroups v1 which is what DOMJudge likes. This would look like:
 
 ```
-sudo vi /etc/default/grub.d/50-cloudimg-settings.cfg 
+sudo vi /etc/default/grub.d/50-cloudimg-settings.cfg
 
 /* In line 11 (probably), append the following */
 GRUB_CMDLINE_LINUX_DEFAULT="~~existing stuff~~ quiet cgroup_enable=memory swapaccount=1 systemd.unified_cgroup_hierarchy=0”
@@ -353,6 +355,10 @@ cd ~/domjudge/judgehost/bin
 And that should be everything. You should have no internal errors (except maybe the configuration) and everything should work as needed :heart:
 
 If your judge does not connect to the DOM Server under the Judgehosts tab, then something is wrong with the `restapi.secret` on the judgehost server. Redo the Connecting To The Server section of this guide.
+
+# Running Contests
+
+This guide is designed to install and setup the basics for the DOMJudge server so I won't go in depth on how to make a contest or problems. Everything is pretty straightforward on the website. Everything is accessible on that admin dashboard page! Good luck :smile:
 
 # References
 
