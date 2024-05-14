@@ -152,7 +152,7 @@ dummy:localhost:domjudge:domjudge:_YourPasswordHere_
 
 ```
 sudo rm -rf /etc/mysql
-sudo rm -rf /var/lib/mysql*
+sudo rm -rf /var/lib/mysql
 sudo apt-get remove --purge mysql-server
 sudo apt-get autoremove
 sudo apt-get update && sudo apt-get upgrade
@@ -167,6 +167,8 @@ Now to actually setup the DOMJudge database:
 cd ~/domjudge/domserver/bin
 sudo ./dj_setup_database install
 ```
+
+If you get a permission error, then SQL might have been already installed and needs a fresh install. Go back and fully reinstall SQL. [This is really helpful!](https://www.baeldung.com/linux/mysql-complete-clean-reinstall)
 
 ## Webserver
 
